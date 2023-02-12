@@ -3,7 +3,7 @@ from catboost import CatBoostClassifier
 import PySimpleGUI as sg
 
 # Trained model
-model = CatBoostClassifier().load_model('Models/Tuned-Model')
+model = CatBoostClassifier().load_model('Models/Tuned-Model-With-Overfitting-Detection')
 
 # Create the layout so a user can input their values for all features used in the model
 column_layout = [
@@ -12,7 +12,7 @@ column_layout = [
     [sg.Combo(['Male', 'Female'], size=(10,2), key='Sex')],
     [sg.Text("Do you have high blood pressure?")],
     [sg.Combo(['Yes', 'No'], size=(10,2), key='HighBP')],
-    [sg.Text("Do you have high blood cholesterol?")],
+    [sg.Text("Do you have high cholesterol?")],
     [sg.Combo(['Yes', 'No'], size=(10,2), key='HighChol')],
     [sg.Text("Have you had a cholesterol check in the past 5 years?")],
     [sg.Combo(['Yes', 'No'], size=(10,2), key='CholCheck')],

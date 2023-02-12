@@ -1,10 +1,12 @@
 import pandas
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn
 from catboost import CatBoostClassifier, Pool, cv
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 import sqlite3
+from scipy.stats import randint
 
 
 SQL_PATH = 'Data/database.db'
@@ -82,34 +84,43 @@ feature_importance_data = pandas.DataFrame({'feature':classifier.feature_names_,
 feature_importance_data.sort_values('importance', ascending=False, inplace=True)
 seaborn.barplot(x='importance', y='feature', data=feature_importance_data)
 
-# Create the grid of possible parameters for hyperparameter tuning
-HPgrid = {'depth': [3,4,6,8.10],
-    'iterations': [3000,5000,7500.10000,15000],
-    'early_stopping_rounds': [1,3,5,10,20]
+# Set the grid of hyperparameter possibilities. This is the second attempt, now with an overfitting detector
+HPgrid = {'depth': [2,4,6,8],
+    'iterations': [3000,5000,7500,10000],
+    'early_stopping_rounds': [1,3,5,10],
+    'l2_leaf_reg': [5,10,15,25],
+    'od_type': ['IncToDec']
 }
 
-# Fit the model and test all possible combinations of hyperparameters to find those that produce the highest accuracy
+# Fit the model and test all possible combinations of hyperparameters found by random tuning to find those that produce the highest accuracy
 # Uses grid-based hyperparameter tuning
-grid_cross_val = GridSearchCV(estimator = classifier, param_grid = HPgrid, scoring = 'accuracy', cv = 5)
-grid_cross_val.fit(training_columns,training_values, verbose = False)
+grid_cross_val = GridSearchCV(estimator=classifier, param_grid=HPgrid, scoring='accuracy', cv=5)
+grid_cross_val.fit(training_columns,training_values, verbose=False)
 
 # Fit and train the model with the best parameters as found by the above hyperparameter tuning
 best_parameters = grid_cross_val.best_params_
 tuned_model = CatBoostClassifier(**best_parameters)
-tuned_model.fit(training_columns, training_values, verbose = False)
+tuned_model.fit(
+    training_columns, 
+    training_values, 
+    verbose = False, 
+    eval_set=(testing_columns,testing_values)
+    )
 
-# Save and export the tuned model to be used to make new predictions
-tuned_model.save_model(MODEL_PATH + 'Tuned-Model')
+HP_predictions = tuned_model.predict(testing_columns)
+
+# Save and export the tuned model to be used to make new predictions with the Input UI
+tuned_model.save_model(MODEL_PATH + 'Tuned-Model-with-Overfitting-Detection')
 
 # Create graphs to showcase the features by importance with the best parameters as found by the hyperparameter tuning
 figure, axis = plt.subplots()
-feature_importance_data = pandas.DataFrame({'feature':classifier.feature_names_, 'importance':classifier.feature_importances_})
+feature_importance_data = pandas.DataFrame({'feature':tuned_model.feature_names_, 'importance':tuned_model.feature_importances_})
 feature_importance_data.sort_values('importance', ascending=False, inplace=True)
 seaborn.barplot(x='importance', y='feature', data=feature_importance_data)
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 # Showcase the best accuracy score and the best parameters as found by the hyperparameter tuning
-print("best score: " + str(grid_cross_val.best_score_))
-print("BEST PARAMS: " + str(grid_cross_val.best_params_))
+print("Best Score: " + str(grid_cross_val.best_score_))
+print("Best Params: " + str(grid_cross_val.best_params_))
 
 # Showcase information about the predictions made in training of the most accurate model
 print(classification_report(testing_values, predictions))

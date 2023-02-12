@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
 
-#Code within this file was adapted from https://github.com/hfhoffman1144/Heart-Disease-Prediction/blob/main/notebooks/csv_to_sql.ipynb
+#Code within this file was adapted from https://www.sqlitetutorial.net/sqlite-python/create-tables/
 
 # Path to the csv file containing the data
 CSV_PATH = 'Data/diabetes_binary_health_indicators_BRFSS2015.csv'
