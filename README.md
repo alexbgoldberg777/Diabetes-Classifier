@@ -9,5 +9,3 @@ The data was converted to an sqlite3 database with the csv_to_sql file. Within t
 Also included in the Training_and_UI folder in the InputUI file is a user interface made using PySimpleGUI where a user can input their own health indicator data and see what their probability of developing diabetes/prediabetes is.
 
 To run the project, download the code from the repository and simply run the InputUI file. A UI window will pop up prompting the user to input their data. After doing so, click the "Calculate Diabetes Chance" button to see your results.
-
-***Note: the current model was tuned for high accuracy, which led to significant overfitting. This may lead to an extremely low chance of diabetes output according to your health indicator data. The solution to this issue is currently in progress.***
